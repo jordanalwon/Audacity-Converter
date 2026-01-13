@@ -1,0 +1,90 @@
+import numpy as np
+import soundfile as sf
+from tqdm import tqdm
+
+from .binary_stream import BinaryStream
+from .name_space import NameSpace
+from .reader import SQLite3Reader
+from .xml_object import XMLObject
+
+
+class Converter:
+    def __init__(self, path):
+        # Read .aup3
+        self.file = SQLite3Reader(path)
+
+        # Get name-space
+        binary_name_space = self.file.binary_name_space()
+        ns_by_stream = BinaryStream(binary=binary_name_space)
+        name_space = NameSpace(ns_by_stream)
+
+        # Get XML-Object
+        binary_xml = self.file.binary_xml()
+        xml_by_stream = BinaryStream(binary=binary_xml)
+        self.xml = XMLObject(xml_by_stream, name_space).todict()
+
+    def _rate(self) -> int:
+        rates = []
+        for wavetrack in self.xml["project"]["wavetrack"]:
+            rates.append(wavetrack["rate"])
+
+        if len(set(rates)) > 1:
+            raise ValueError("Different Samplerates!")
+
+        rate = rates[0]
+
+        return int(rate)
+
+    def _sampleformat(self, format_id):
+        if format_id == 262159:
+            return {"numpy": "<f4", "soundfile": "float32"}
+        else:
+            raise ValueError("Unknown sample format!")
+
+    def _channels(self):
+        return len(self.xml["project"]["wavetrack"])
+
+    def labels(self) -> dict:
+        label = {}
+        if "labeltrack" in self.xml["project"].keys():
+            label = self.xml["project"]["labeltrack"]["label"]
+
+        return label
+
+    def export_audio(self, file):
+        rate = self._rate()
+        channels = self._channels()
+        sampleformat = self._sampleformat(
+            self.xml["project"]["wavetrack"][0]["sampleformat"]
+        )
+        blocks = len(
+            self.xml["project"]["wavetrack"][0]["waveclip"]["sequence"]["waveblock"]
+        )
+        with (
+            sf.SoundFile(
+                file, mode="w", samplerate=rate, channels=channels
+            ) as soundfile,
+            tqdm(total=blocks * channels, desc="export audio") as pbar,
+        ):
+            for idx in range(blocks):
+                c_data = []
+                for c in range(channels):
+                    block_id = self.xml["project"]["wavetrack"][c]["waveclip"][
+                        "sequence"
+                    ]["waveblock"][idx]["blockid"]
+                    binary_block = self.file.binary_sammpleblock(block_id)
+                    c_data.append(
+                        np.frombuffer(binary_block, dtype=sampleformat["numpy"])
+                    )
+                    pbar.update()
+                o_data = np.stack(c_data, axis=1)
+                soundfile.buffer_write(o_data, dtype=sampleformat["soundfile"])
+        return
+
+    def export_label(self, file, sign_digits=6):
+        with open(file, "w") as f:
+            for label in self.labels():
+                f.write(
+                    f"{label['t']:.{sign_digits}f}\t{label['t1']:.{sign_digits}f}\t{label['title']}\n"
+                )
+        return
