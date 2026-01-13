@@ -5,10 +5,14 @@ Audacity-Converter is MIT licensed
 (c) 2024, Jordan Alwon
 
 ## Installation
-*.aup3-Converter* has following dependencies:
-- Numpy
-- Soundfile
-- tqdm
+*Audacity-Converter* has following dependencies:
+```
+git clone git@github.com:jordanalwon/Audacity-Converter.git
+cd Audacity-Converter
+```
+```
+uv sync
+```
 
 ## Export Data
 ```python
