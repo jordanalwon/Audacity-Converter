@@ -1,7 +1,7 @@
-# .aup3-Converter
-*.aup3-Converter* extracts the data of an Audacity project file (.aup3) and makes it available for further processing or saves the data in more accessible file formats.
+# Audacity-Converter
+*Audacity-Converter* extracts the data of an Audacity project file (.aup3) and makes it available for further processing or saves the data in more accessible file formats.
 
-.aup3-Converter is MIT licensed
+Audacity-Converter is MIT licensed
 (c) 2024, Jordan Alwon
 
 ## Installation
