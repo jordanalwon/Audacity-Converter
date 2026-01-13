@@ -1,6 +1,7 @@
 import struct
 
-class NameSpace():
+
+class NameSpace:
     def __init__(self, binary_stream):
         self.binary_stream = binary_stream
         self.name_space = {}
@@ -9,34 +10,36 @@ class NameSpace():
         self.binary_stream(1)
 
         self.string_block_size = self._indecator()
-        self.name_space['string_block_size'] = self.string_block_size
+        self.name_space["string_block_size"] = self.string_block_size
 
         while bool(self.binary_stream):
             indecator = self._indecator()
 
             if indecator == 15:
                 index = self._index()
-                l = self._block_length()
-                text = self._text(l)
+                block_length = self._block_length()
+                text = self._text(block_length)
 
                 self.name_space[index] = text
             else:
                 raise ValueError("Unknown Indecator!")
-            
+
     def __getitem__(self, index):
         return self.name_space[index]
 
     def _indecator(self):
-        return struct.unpack('B', self.binary_stream(1))[0]
-    
+        return struct.unpack("B", self.binary_stream(1))[0]
+
     def _index(self):
-        return struct.unpack('H', self.binary_stream(2))[0]
-    
+        return struct.unpack("H", self.binary_stream(2))[0]
+
     def _block_length(self):
-        return struct.unpack('H', self.binary_stream(2))[0]
-    
-    def _text(self, l):
-        s = ''
-        for _ in range(l//self.string_block_size):
-            s += struct.unpack('s', self.binary_stream(self.string_block_size)[:1])[0].decode(encoding='utf-8')
+        return struct.unpack("H", self.binary_stream(2))[0]
+
+    def _text(self, length):
+        s = ""
+        for _ in range(length // self.string_block_size):
+            s += struct.unpack("s", self.binary_stream(self.string_block_size)[:1])[
+                0
+            ].decode(encoding="utf-8")
         return s
