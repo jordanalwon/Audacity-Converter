@@ -14,12 +14,12 @@ cd Audacity-Converter
 uv sync
 ```
 
-## Export Data
+## Extract Data
 ```python
 from convert import Converter
 converter = Converter(path)
-converter.export_audio('export.wav')
-converter.export_label("export.txt")
+converter.extract_audio('data.wav')
+converter.exptract_label("data.txt")
 ```
 
 ## Roadmap to v1.0

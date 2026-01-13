@@ -51,7 +51,7 @@ class Converter:
 
         return label
 
-    def export_audio(self, file):
+    def extract_audio(self, file):
         rate = self._rate()
         channels = self._channels()
         sampleformat = self._sampleformat(
@@ -64,7 +64,7 @@ class Converter:
             sf.SoundFile(
                 file, mode="w", samplerate=rate, channels=channels
             ) as soundfile,
-            tqdm(total=blocks * channels, desc="export audio") as pbar,
+            tqdm(total=blocks * channels, desc="extract audio") as pbar,
         ):
             for idx in range(blocks):
                 c_data = []
@@ -81,7 +81,7 @@ class Converter:
                 soundfile.buffer_write(o_data, dtype=sampleformat["soundfile"])
         return
 
-    def export_label(self, file, sign_digits=6):
+    def extract_label(self, file, sign_digits=6):
         with open(file, "w") as f:
             for label in self.labels():
                 f.write(
